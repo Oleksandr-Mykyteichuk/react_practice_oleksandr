@@ -7,10 +7,8 @@ import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
 
 const products = productsFromServer.map(product => {
-  const category = categoriesFromServer.find(
-      c => c.id === product.categoryId,
-    );
-    const user = usersFromServer.find(u => u.id === category.ownerId);
+  const category = categoriesFromServer.find(c => c.id === product.categoryId);
+  const user = usersFromServer.find(u => u.id === category.ownerId);
   let userClass = '';
 
   if (user.sex === 'm') {
