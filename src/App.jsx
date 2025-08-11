@@ -5,50 +5,106 @@ import './App.scss';
 import usersFromServer from './api/users';
 import categoriesFromServer from './api/categories';
 import productsFromServer from './api/products';
-import { FilterList } from './component/filter';
 
-// const products = productsFromServer.map((product) => {
-//   const category = null; // find by product.categoryId
-//   const user = null; // find by category.ownerId
+const products = productsFromServer.map(product => {
+  const category = categoriesFromServer.find(
+      c => c.id === product.categoryId,
+    );
+    const user = usersFromServer.find(u => u.id === category.ownerId);
+  let userClass = '';
 
-//   return null;
-// });
+  if (user.sex === 'm') {
+    userClass = 'has-text-link';
+  } else if (user.sex === 'f') {
+    userClass = 'has-text-danger';
+  }
+
+  return {
+    id: product.id,
+    name: product.name,
+    categoryTitle: category.title,
+    categoryIcon: category.icon,
+    userName: user.name,
+    userClass,
+    userId: user.id,
+    categoryId: product.categoryId,
+  };
+});
 
 export const App = () => {
-  const usersMap = usersFromServer.reduce((acc, curr) => {
-    return {
-      ...acc,
-      [curr.id]: curr,
-    };
-  }, {});
-
-  const categoriesMap = categoriesFromServer.reduce((acc, curr) => {
-    return {
-      ...acc,
-      [curr.ownerId]: [...(acc[curr.ownerId] || []), curr],
-    };
-  }, {});
-
-  const products = productsFromServer.map(product => {
-    return {
-      ...product,
-      user: usersMap[categoriesMap.id],
-      categories: categoriesMap[product.ownerId],
-    };
-  });
-
   return (
     <div className="section">
       <div className="container">
         <h1 className="title">Product Categories</h1>
 
         <div className="block">
-          <FilterList
-            key={products.id}
-            products={products}
-            categories={products.categories}
-            user={products.user}
-          />
+          <nav className="panel">
+            <p className="panel-heading">Filters</p>
+
+            <p className="panel-tabs has-text-weight-bold">
+              <a data-cy="FilterAllUsers" href="#/">
+                All
+              </a>
+              {usersFromServer.map(user => (
+                <a data-cy="FilterUser" href="#/" key={user.id}>
+                  {user.name}
+                </a>
+              ))}
+            </p>
+
+            <div className="panel-block">
+              <p className="control has-icons-left has-icons-right">
+                <input
+                  data-cy="SearchField"
+                  type="text"
+                  className="input"
+                  placeholder="Search"
+                  value="qwe"
+                />
+
+                <span className="icon is-left">
+                  <i className="fas fa-search" aria-hidden="true" />
+                </span>
+
+                <span className="icon is-right">
+                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
+                  <button
+                    data-cy="ClearButton"
+                    type="button"
+                    className="delete"
+                  />
+                </span>
+              </p>
+            </div>
+
+            <div className="panel-block is-flex-wrap-wrap">
+              <a
+                href="#/"
+                data-cy="AllCategories"
+                className="button is-success mr-6 is-outlined"
+              >
+                All
+              </a>
+
+              <a
+                data-cy="Category"
+                className="button mr-2 my-1 is-info"
+                href="#/"
+              >
+                {/* {product.categoryTitle} */}
+              </a>
+            </div>
+
+            <div className="panel-block">
+              <a
+                data-cy="ResetAllButton"
+                href="#/"
+                className="button is-link is-outlined is-fullwidth"
+              >
+                Reset all filters
+              </a>
+            </div>
+          </nav>
         </div>
 
         <div className="box table-container">
@@ -109,44 +165,21 @@ export const App = () => {
             </thead>
 
             <tbody>
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  1
-                </td>
-
-                <td data-cy="ProductName">{products.name}</td>
-                <td data-cy="ProductCategory">🍺 - Drinks</td>
-
-                <td data-cy="ProductUser" className="has-text-link">
-                  Max
-                </td>
-              </tr>
-
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  2
-                </td>
-
-                <td data-cy="ProductName">Bread</td>
-                <td data-cy="ProductCategory">🍞 - Grocery</td>
-
-                <td data-cy="ProductUser" className="has-text-danger">
-                  Anna
-                </td>
-              </tr>
-
-              <tr data-cy="Product">
-                <td className="has-text-weight-bold" data-cy="ProductId">
-                  3
-                </td>
-
-                <td data-cy="ProductName">iPhone</td>
-                <td data-cy="ProductCategory">💻 - Electronics</td>
-
-                <td data-cy="ProductUser" className="has-text-link">
-                  Roma
-                </td>
-              </tr>
+              {products.map(product => (
+                <tr data-cy="Product" key={product.id}>
+                  <td className="has-text-weight-bold" data-cy="ProductId">
+                    {product.id}
+                  </td>
+                  <td data-cy="ProductName">{product.name}</td>
+                  <td data-cy="ProductCategory">
+                    {' '}
+                    {product.categoryIcon} - {product.categoryTitle}
+                  </td>
+                  <td data-cy="ProductUser" className={product.userClass}>
+                    {product.userName}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
